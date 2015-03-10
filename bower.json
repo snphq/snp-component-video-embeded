@@ -1,0 +1,25 @@
+{
+  "name": "snp-component-video-embeded",
+  "version": "0.0.1",
+  "homepage": "https://github.com/snphq/snp-component-video-embeded",
+  "authors": [
+    "Maksim Koretskiy <maksim.koretskiy@saltpepper.ru>"
+  ],
+  "description": "Embeded video component for generator-sp",
+  "main": "dist/index.js",
+  "keywords": [
+    "generator-sp",
+    "component",
+    "backbone",
+    "video",
+    "embeded"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
