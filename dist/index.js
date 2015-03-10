@@ -7,7 +7,6 @@ define(function(require) {
   SuperClass = MixinBackbone(Backbone.Epoxy.View);
   VideoModel = Backbone.Epoxy.Model.extend({
     defaults: {
-      video_title: "",
       video: "",
       image: "",
       showvideo: false
@@ -18,7 +17,7 @@ define(function(require) {
         get: function(video, image, showvideo) {
           var img, video_url;
           video_url = video + (video.indexOf("?") > 0 ? "&" : "?") + "autoplay=1";
-          img = "<div class=\"image\" style=\"background-image:url('" + image + "')\" />\n<div class=\"play\" data-js-video-play />";
+          img = "<div class=\"videoembeded_component--image\" style=\"background-image:url('" + image + "')\" />\n<div class=\"videoembeded_component--play\" data-js-video-play />";
           if (!showvideo) {
             return img;
           }
@@ -35,7 +34,7 @@ define(function(require) {
     templateFunction: function() {
       return "";
     },
-    className: "videoembeded_widget",
+    className: "videoembeded_component",
     ui: {
       play: "[data-js-video-play]"
     },
@@ -52,28 +51,59 @@ define(function(require) {
         return $el.html(html);
       }
     },
-    initialize: function() {
-      return this.model = new VideoModel;
+    initialize: function(opts) {
+      if (opts == null) {
+        opts = {};
+      }
+      this.viewModel = new VideoModel;
+      opts = _.defaults(opts, {
+        data: null
+      });
+      if (opts.data) {
+        this.setData(opts.data);
+      }
+      if (this.model) {
+        return this.setModel(this.model);
+      }
     },
-    showPlayer: function($el, model) {
+    onChangeModel: function() {
+      return this._parseModel(this.model);
+    },
+    setData: function(data) {
+      return this.viewModel.set(data);
+    },
+    setModel: function(model) {
+      if (this.model && this.model !== model) {
+        this.stopListening(this.model);
+      }
+      this.model = model;
+      this.listenTo(this.model, "change", this.onChangeModel);
+      return this._parseModel(model);
+    },
+    _parseModel: function(model) {
       var data;
-      $el.append(this.$el);
-      this.delegateEvents();
       data = _.extend(_.result(this.model, 'defaults'), {
         video: model.get('video'),
-        video_title: model.get('video_title'),
         image: model.get("image")
       });
-      return this.model.set(data);
+      return this.setData(data);
     },
     hidePlayer: function() {},
-    onClose: function() {
-      return this.model.set({
+    play: function() {
+      return this.viewModel.set({
+        showvideo: true
+      });
+    },
+    stop: function() {
+      return this.viewModel.set({
         showvideo: false
       });
     },
+    onClose: function() {
+      return this.stop();
+    },
     onClickPlay: function() {
-      return this.model.set({
+      return this.viewModel.set({
         showvideo: true
       });
     }
