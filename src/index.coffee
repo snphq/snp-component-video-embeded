@@ -8,7 +8,6 @@ define (require)->
 
   VideoModel = Backbone.Epoxy.Model.extend
     defaults:
-      video_title:""
       video:""
       image:""
       showvideo:false
@@ -19,8 +18,8 @@ define (require)->
         get:(video,image, showvideo)->
           video_url = video + (if video.indexOf("?") > 0 then "&" else "?") + "autoplay=1"
           img = """
-            <div class=\"image\" style=\"background-image:url('#{image}')\" />
-            <div class=\"play\" data-js-video-play />
+            <div class=\"videoembeded_component--image\" style=\"background-image:url('#{image}')\" />
+            <div class=\"videoembeded_component--play\" data-js-video-play />
             """
           return img unless showvideo
           if video
@@ -29,7 +28,7 @@ define (require)->
 
   EmbededVideoComponent = SuperClass.extend
     templateFunction: -> ""
-    className:"videoembeded_widget"
+    className:"videoembeded_component"
 
     ui:
       play:"[data-js-video-play]"
@@ -46,21 +45,38 @@ define (require)->
         $el.empty()
         $el.html html
 
-    initialize:->
-      @model = new VideoModel
+    initialize:(opts={})->
+      @viewModel = new VideoModel
+      opts = _.defaults opts, {
+        data: null
+      }
+      @setData opts.data if opts.data
+      @setModel @model if @model
 
-    showPlayer:($el,model)->
-      $el.append @$el
-      @delegateEvents()
+    onChangeModel: -> @_parseModel @model
+
+    setData: (data)-> @viewModel.set data
+
+    setModel: (model)->
+      if @model and @model isnt model
+        @stopListening @model
+      @model = model
+      @listenTo @model, "change", @onChangeModel
+      @_parseModel model
+
+    _parseModel: (model)->
       data = _.extend _.result(@model,'defaults'),{
         video:        model.get('video')
-        video_title:  model.get('video_title')
         image:        model.get("image")
       }
-      @model.set data
+      @setData data
 
     hidePlayer:->
 
-    onClose:-> @model.set {showvideo:false}
+    play: -> @viewModel.set {showvideo: true}
 
-    onClickPlay:-> @model.set {showvideo:true}
+    stop: -> @viewModel.set {showvideo: false}
+
+    onClose:-> @stop()
+
+    onClickPlay:-> @viewModel.set {showvideo:true}
